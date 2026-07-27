@@ -1,112 +1,178 @@
 # pico
 
-`pico` 是一个面向代码仓库的轻量本地 coding agent。它直接跑在终端里，先看当前工作区，再用一组受约束的工具去读文件、改文件、跑命令，并把会话状态保存在本地 `.pico/` 目录里。
+`pico` is a lightweight local coding agent designed for working directly inside code repositories.
 
-它更像一个能在仓库里持续工作的命令行助手，不是纯聊天窗口。你可以拿它做代码排查、测试修复、仓库分析，或者让它在当前项目里执行一次性的工程任务。
+Unlike a pure chat-based assistant, `pico` runs in the terminal, understands the current workspace, uses a controlled set of tools to inspect files, modify code, execute commands, and persist session states locally under the `.pico/` directory.
 
-## 适合做什么
+It works as a continuous coding assistant inside a repository, supporting tasks such as debugging, test fixing, codebase analysis, and small engineering iterations.
 
-- 在本地仓库里排查测试失败
-- 读取当前代码结构并给出修改建议
-- 基于现有文件做小步迭代，而不是脱离仓库空想
-- 在会话中保留上下文，支持继续上一次工作
+---
 
-## 主要特性
+# What Can Pico Do
 
-- 包名是 `pico`
-- CLI 命令是 `pico`
-- 模块入口是 `python -m pico`
-- 会话保存在 `.pico/sessions/`
-- 每次运行的工件保存在 `.pico/runs/<run_id>/`
-- 支持四类模型后端：
+Typical use cases:
+
+- Debug failing tests in local repositories
+- Analyze existing project structures and provide modification suggestions
+- Perform incremental code changes based on the current workspace
+- Maintain context across sessions and continue previous tasks
+
+---
+
+# Key Features
+
+- Package name: `pico`
+- CLI command: `pico`
+- Python module entry:
+
+```bash
+python -m pico
+```
+
+- Session storage:
+
+```
+.pico/sessions/
+```
+
+- Runtime artifacts:
+
+```
+.pico/runs/<run_id>/
+```
+
+- Supported model providers:
+
   - Ollama
-  - OpenAI 兼容 Responses API
-  - Anthropic 兼容 Messages API
-  - DeepSeek Anthropic 兼容 API
+  - OpenAI-compatible Responses API
+  - Anthropic-compatible Messages API
+  - DeepSeek Anthropic-compatible API
 
-## 使用截图
+---
 
-CLI 帮助信息：
+# Screenshots
+
+## CLI Help
 
 ![pico help](assets/screenshots/pico-help.png)
 
-启动界面：
+## Startup Interface
 
 ![pico start](assets/screenshots/pico-start.png)
 
-REPL 内置命令与会话路径：
+## REPL Commands and Session Information
 
 ![pico repl](assets/screenshots/pico-repl.png)
 
-## 安装
+---
 
-需要 Python 3.10+。
+# Installation
 
-如果你用 `uv`，直接安装依赖：
+Requirements:
+
+- Python 3.10+
+
+## Install with uv
 
 ```bash
 uv sync
 ```
 
-如果你已经在自己的 Python 环境里工作，也可以直接装成可编辑模式：
+## Install as Editable Package
+
+If you already have a Python environment:
 
 ```bash
 pip install -e .
 ```
 
-## 快速开始
+---
 
-在当前仓库里启动交互模式。当前推荐使用 DeepSeek：
+# Quick Start
+
+Start interactive mode inside the current repository.
+
+Example using DeepSeek:
 
 ```bash
 uv run pico --provider deepseek
 ```
 
-指定另一个工作目录：
+Specify another working directory:
 
 ```bash
 uv run pico --cwd /path/to/repo
 ```
 
-直接跑一次性任务：
+Run a one-shot task:
 
 ```bash
 uv run pico --provider deepseek "inspect the test failures and propose a fix"
 ```
 
-如果当前环境已经安装过包，也可以直接这样启动：
+If the package is already installed:
 
 ```bash
 python -m pico --provider deepseek
 ```
 
-## 模型后端
+---
 
-Pico 启动时会读取项目根目录的 `.env`。本地真实 key 放在 `.env`，仓库只保留 `.env.example`。配置优先级是：
+# Model Providers
 
-```text
-显式 CLI 参数 > .env 里的 PICO_* 变量 > 旧环境变量 > 代码默认值
+Pico loads configuration from `.env` in the project root.
+
+Real API keys should only exist in local `.env` files. The repository should only contain `.env.example`.
+
+Configuration priority:
+
+```
+CLI arguments
+    >
+PICO_* environment variables
+    >
+legacy environment variables
+    >
+default values
 ```
 
-本地第一次配置：
+Initialize local configuration:
 
 ```bash
 cp .env.example .env
 ```
 
-然后把要使用的 provider key 填进去。`.env` 已经被 `.gitignore` 忽略，不要提交真实 key。
+Then configure the required provider keys.
 
-### Ollama
+The `.env` file is ignored by `.gitignore` and should never contain committed secrets.
+
+---
+
+# Ollama
+
+Start Ollama:
 
 ```bash
 ollama serve
+```
+
+Pull a model:
+
+```bash
 ollama pull qwen3.5:4b
+```
+
+Run Pico:
+
+```bash
 uv run pico --provider ollama --model qwen3.5:4b
 ```
 
-### OpenAI 兼容接口
+---
 
-默认 OpenAI 兼容接口使用 right.codes 的 Codex endpoint：
+# OpenAI-Compatible API
+
+Default OpenAI-compatible endpoint:
 
 ```bash
 PICO_OPENAI_API_BASE="https://www.right.codes/codex/v1"
@@ -114,7 +180,7 @@ PICO_OPENAI_API_KEY="your-api-key"
 PICO_OPENAI_MODEL="gpt-5.4"
 ```
 
-也可以改成其他 OpenAI-compatible 服务：
+Other OpenAI-compatible services are supported:
 
 ```bash
 PICO_OPENAI_API_BASE="https://your-api.example/v1"
@@ -122,13 +188,17 @@ PICO_OPENAI_API_KEY="your-api-key"
 PICO_OPENAI_MODEL="gpt-5.4"
 ```
 
+Run:
+
 ```bash
 uv run pico --provider openai
 ```
 
-### Anthropic 兼容接口
+---
 
-默认 Anthropic 兼容接口使用 right.codes 的 Claude endpoint：
+# Anthropic-Compatible API
+
+Default Anthropic-compatible endpoint:
 
 ```bash
 PICO_ANTHROPIC_API_BASE="https://www.right.codes/claude/v1"
@@ -136,53 +206,148 @@ PICO_ANTHROPIC_API_KEY="your-api-key"
 PICO_ANTHROPIC_MODEL="claude-sonnet-4-6"
 ```
 
+Run:
+
 ```bash
 uv run pico --provider anthropic
 ```
 
-如果你的服务端对多个兼容接口复用了同一套密钥，`pico` 也支持从 `PICO_ANTHROPIC_API_KEY` 回退到 `ANTHROPIC_API_KEY`、`PICO_RIGHT_CODES_API_KEY`、`RIGHT_CODES_API_KEY`、`PICO_OPENAI_API_KEY` 或 `OPENAI_API_KEY`。
+For compatible services sharing the same credentials, Pico supports fallback lookup from:
 
-### DeepSeek
+```
+PICO_ANTHROPIC_API_KEY
+
+ANTHROPIC_API_KEY
+
+PICO_RIGHT_CODES_API_KEY
+
+RIGHT_CODES_API_KEY
+
+PICO_OPENAI_API_KEY
+
+OPENAI_API_KEY
+```
+
+---
+
+# DeepSeek
+
+Configuration:
 
 ```bash
 PICO_DEEPSEEK_API_KEY="your-api-key"
+
 PICO_DEEPSEEK_MODEL="deepseek-v4-pro"
 ```
+
+Run:
 
 ```bash
 uv run pico --provider deepseek
 ```
 
-默认 DeepSeek base URL 是 `https://api.deepseek.com/anthropic`，走 DeepSeek 的 Anthropic 兼容接口。如果需要改到代理服务，可以设置 `PICO_DEEPSEEK_API_BASE` 或启动时传 `--base-url`。
+The default DeepSeek endpoint is:
 
-## 常用交互命令
+```
+https://api.deepseek.com/anthropic
+```
 
-- `/help`：查看内置命令
-- `/memory`：查看提炼后的工作记忆
-- `/session`：查看当前会话文件路径
-- `/reset`：清空当前会话状态
-- `/exit` 或 `/quit`：退出 REPL
+Pico uses DeepSeek's Anthropic-compatible interface.
 
-## 安全与持久化
+A custom endpoint can be configured with:
 
-`pico` 不会默认把所有动作都放开。像 shell 执行、文件写入这类高风险操作，会受审批模式控制：
+```bash
+PICO_DEEPSEEK_API_BASE
+```
 
-- `--approval ask`
-- `--approval auto`
-- `--approval never`
+or:
 
-每次运行结束后，都会在 `.pico/runs/<run_id>/` 下写出这些文件：
+```bash
+--base-url
+```
 
-- `task_state.json`
-- `trace.jsonl`
-- `report.json`
+---
 
-这些内容默认只保存在本地，不需要跟仓库一起提交。
+# Interactive Commands
 
-## 开发
+Inside Pico REPL:
 
-如果装了 Ruff，可以这样检查：
+| Command | Description |
+|---|---|
+| `/help` | Show available commands |
+| `/memory` | Display extracted working memory |
+| `/session` | Show current session file path |
+| `/reset` | Clear current session state |
+| `/exit` | Exit REPL |
+| `/quit` | Exit REPL |
+
+---
+
+# Security and Persistence
+
+Pico does not automatically allow unrestricted actions.
+
+High-risk operations such as:
+
+- Shell execution
+- File modification
+
+are controlled through approval modes:
+
+```bash
+--approval ask
+```
+
+```bash
+--approval auto
+```
+
+```bash
+--approval never
+```
+
+---
+
+# Runtime Artifacts
+
+After each run, Pico stores execution artifacts locally:
+
+```
+.pico/runs/<run_id>/
+```
+
+Generated files:
+
+```
+task_state.json
+
+trace.jsonl
+
+report.json
+```
+
+These files are stored locally by default and do not need to be committed with the repository.
+
+---
+
+# Development
+
+Run code checks with Ruff:
 
 ```bash
 uv run ruff check .
 ```
+
+---
+
+# Project Summary
+
+Pico is a lightweight terminal-based coding agent that combines:
+
+- Local repository understanding
+- Controlled tool execution
+- Persistent session management
+- Model provider abstraction
+- Safe engineering workflows
+
+It aims to provide a practical coding assistant that can continuously work inside real software projects.
